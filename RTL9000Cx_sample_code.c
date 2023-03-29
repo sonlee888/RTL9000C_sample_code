@@ -933,6 +933,8 @@ u8 RTL9000Cx_MACsec_Enable(u8 Control)
 			mdio_write(31, 0x0D01);
 			mdio_data = mdio_read(17);
 			BIT_SET(mdio_data, 4);
+			BIT_CLR(mdio_data, 3);
+			mdio_write(17, mdio_data);
 			break;
 
 		case 2: //MACsec Enable with Flow control ON
@@ -940,6 +942,7 @@ u8 RTL9000Cx_MACsec_Enable(u8 Control)
 			mdio_data = mdio_read(17);
 			BIT_SET(mdio_data, 4);
 			BIT_SET(mdio_data, 3);
+			mdio_write(17, mdio_data);
 			break;
 
 		case 3: //MACsec disable
@@ -947,6 +950,7 @@ u8 RTL9000Cx_MACsec_Enable(u8 Control)
 			mdio_data = mdio_read(17);
 			BIT_CLR(mdio_data, 4);
 			BIT_CLR(mdio_data, 3);
+			mdio_write(17, mdio_data);
 			break;
 
 		default: 
