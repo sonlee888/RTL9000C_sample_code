@@ -28,9 +28,9 @@ u8 RTL9000Cx_Initial_Configuration(void)
 
 		
 	mdio_write(0, 0x8000);	// PHY soft-reset
-	while (mdio_data != 0x2100){	// Check soft-reset complete
+	do{	// Check soft-reset complete
 		mdio_data = mdio_read(0);
-	}
+	}while (mdio_data != 0x2100);
 	timer--;
 		if (timer == 0) {
 			return E_TIMOUT;
@@ -136,10 +136,10 @@ u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length)
 	mdio_write(17, 0x0001); //RTCTCR: bit0 = 1,rtct_en, enable RTCT and start to test
 
 	//Wait RTCT finished
-	while (mdio_data != 0x8000){   //RTCTCR: bit15 = 1, check RTCT is finished
+	do{   
 		mdio_data = mdio_read(17);
 		mdio_data = mdio_data & 0x8000;
-	}
+	}while (mdio_data != 0x8000); //RTCTCR: bit15 = 1, check RTCT is finished
 
 	//Get channel status and cable length
 	mdio_write(31, 0x0A43);    //write reg31,page select register
@@ -177,7 +177,7 @@ u8 RTL9000Cx_Soft_Reset(void)
 
 	mdio_write(0, 0x8000);	// PHY soft-reset
 
-	while (mdio_data != 0x2100){	// Check soft-reset complete
+	do{	
 
 		mdio_data = mdio_read(0);
 		if(mdio_data == 0xFFFF)
@@ -187,7 +187,7 @@ u8 RTL9000Cx_Soft_Reset(void)
 		if (timer == 0){
 			return E_TIMOUT;
 		}
-	}
+	}while (mdio_data != 0x2100); // Check soft-reset complete
 
 	return E_NOERR;
 }
@@ -217,7 +217,7 @@ u8 RTL9000Cx_Check_Linkup(void)
 	u32 counter = 1000;   //the value of counter is dynamic
 
 
-	while (0x0004 != (mdio_data & 0x0004)){
+	do{
 		counter--;
 		mdio_data = mdio_read(1);
 		mdio_data = mdio_read(1); //BMSR:bit2 = 1 linked; bit2 = 0 not linked, read this reg twice for the current link status
@@ -226,7 +226,7 @@ u8 RTL9000Cx_Check_Linkup(void)
 		if (0 == counter)
 			return E_TIMOUT;
 
-	}
+	}while (0x0004 != (mdio_data & 0x0004));
 
 	return E_NOERR;
 }
@@ -780,7 +780,7 @@ u8 RTL9000Cx_PHY_ready(void)
 	u32 mdio_data = 0;
 	u32 timer = 2000;
 
-	while (mdio_data!=0x0003){
+	do {
 		mdio_write(0x1f, 0x0a42);
 		mdio_data = mdio_read(0x10);
 		mdio_data = mdio_data & 0x0007;
@@ -790,7 +790,8 @@ u8 RTL9000Cx_PHY_ready(void)
 			DBGMSG(("PHY NOT ready!!! Reg(16) = 0x%04X\r\n", (u16)mdio_data));
 			return E_TIMOUT;
 		}
-	}
+		
+	}while (mdio_data!=0x0003);
 
 	DBGMSG(("PHY ready!!! Reg(16) = 0x%04X\r\n", (u16)mdio_data));
 	return E_NOERR;
@@ -926,18 +927,32 @@ u8 RTL9000Cx_MACsec_Enable(u8 Control)
 {
 	u32 mdio_data = 0;
 
-	// Set MACsec Enable or Disable //
-	mdio_write(31, 0x0D01);
-	mdio_data = mdio_read(17);
-	if(TurnOn == Control){
-		BIT_SET(mdio_data, 4);
-		BIT_SET(mdio_data, 3); //enable Flow control
-  } 
-	else if (TurnOff == Control){
-		BIT_CLR(mdio_data, 4);
-		BIT_CLR(mdio_data, 3); //disable Flow control
+	switch(Control){
+
+		case 1: //MACsec Enable with Flow control OFF 
+			mdio_write(31, 0x0D01);
+			mdio_data = mdio_read(17);
+			BIT_SET(mdio_data, 4);
+			break;
+
+		case 2: //MACsec Enable with Flow control ON
+			mdio_write(31, 0x0D01);
+			mdio_data = mdio_read(17);
+			BIT_SET(mdio_data, 4);
+			BIT_SET(mdio_data, 3);
+			break;
+
+		case 3: //MACsec disable
+			mdio_write(31, 0x0D01);
+			mdio_data = mdio_read(17);
+			BIT_CLR(mdio_data, 4);
+			BIT_CLR(mdio_data, 3);
+			break;
+
+		default: 
+			break;
+
 	}
-	mdio_write(17, mdio_data);
 
 	return E_NOERR;
 }
