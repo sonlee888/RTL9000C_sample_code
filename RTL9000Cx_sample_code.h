@@ -24,8 +24,7 @@
 #define Lwake_to_rwake_is_disabled		2
 
 
-#define TurnOn		1
-#define TurnOff		0
+
 
 #define BIT_TST(x,n)			(x&(1<<n))
 #define BIT_SET(x,n)			(x|=(1<<n))
@@ -119,6 +118,13 @@ typedef enum {
 	Typical_xMII_2V5 =2, 
 	Typical_xMII_1V8 =3
 } xMII_Voltage;
+
+typedef enum {
+	TurnOn =1,
+	TurnOnWithFlowCtrlOn =2,
+	TurnOff=3,
+} Control;
+
 
 typedef enum {
 	Egress = 1, 
