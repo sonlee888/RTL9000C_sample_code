@@ -259,7 +259,7 @@ u8 RTL9000Cx_Sleep_reject(void)
 	u16 mdio_data = 0;
 
 
-	mdio_write(31, 0x0A42);   //PAGSR:change Page to 0x0A47
+	mdio_write(31, 0x0A42);   //PAGSR:change Page to 0x0A42
 	mdio_data = mdio_read (21);
 	mdio_write(21, mdio_data | 0x0400);
 
@@ -1268,7 +1268,7 @@ u32 RTL9000Cx_Ingress_MIBCounter_Decrypted_InPktsUntaggedHit(u8 SAK_n)
 u8 RTL9000Cx_MACsec_Initial_Configuration_example_1(void)
 {
 	// Step 1. Set MACsec enable
-	RTL9000Cx_MACsec_Enable(TurnOn);
+	RTL9000Cx_MACsec_Enable(2);
 
 	// Step 2. Initial Setting for MACsec Egress Block
 	RTL9000Cx_MACsec_Egress_Write(0xC810, 0x0000000C);
@@ -1491,7 +1491,7 @@ u8 RTL9000Cx_MACsec_Initial_Configuration_example_1(void)
 u8 RTL9000Cx_MACsec_Initial_Configuration_example_2(void)
 {
 	// Step 1. Set MACsec enable
-	RTL9000Cx_MACsec_Enable(TurnOn);
+	RTL9000Cx_MACsec_Enable(2);
 
 	// Step 2. Initial Setting for MACsec Egress Block
 	RTL9000Cx_MACsec_Egress_Write(0xC810, 0x0000000C);
