@@ -1,11 +1,12 @@
-//All functions can refer to RTL9000Cx_Sample_Code_Note_v0.1.pdf.
+//All functions can refer to RTL9000Cx_Sample_Code_Note_v0.2.pdf.
 
 #include "RTL9000Cx_sample_code.h"
 
 u16 param_check[18] = { 0, 0x859C,0x0609,  0, 0x85A2,0x0300,  0, 0x85A4,0x0F07,  0,0xDC00,0x1899, 
                                              0x0A4C,20,0x2A2E,  0x0A49,20,0xFB00};
 
-
+u16 param2_check[24] = { 0, 0x859C, 0x0609,  0, 0x85A2, 0x0300,  0, 0x85A4, 0x0F07,  0, 0xDC00, 0x1899, 
+                         0x0A4C, 20, 0x2A2E,  0x0A49, 20, 0xFB00, 0x0A55, 17, 0xE302, 0xA54, 21, 0xFB05};
 
 u8 RTL9000Cx_Initial_Configuration(void)
 {
@@ -74,10 +75,91 @@ u8 RTL9000Cx_Initial_Configuration_Check(void)
 		}
 	}
 	
+		timer--;
 		if (timer == 0) {
 			return E_TIMOUT;
 		}
 		
+
+	return E_NOERR;
+}
+
+u8 RTL9000Cx_Initial_With_AN_Configuration(void)
+{
+	u32 mdio_data = 0;
+	u32 timer = 2000;
+
+
+	mdio_write(27, 0x859C);
+	mdio_write(28, 0x0609);
+	mdio_write(27, 0x85A2);
+	mdio_write(28, 0x0300);
+	mdio_write(27, 0x85A4);
+	mdio_write(28, 0x0F07);
+	mdio_write(27, 0xDC00);
+	mdio_write(28, 0x1899);
+	mdio_write(31, 0x0A4C);
+	mdio_write(20, 0x2A2E);
+	mdio_write(31, 0x0A49);
+	mdio_write(20, 0xFB00);
+	mdio_write(31, 0x0A55);
+	mdio_write(17, 0xE302);
+	mdio_write(31, 0x0A54);
+	mdio_write(21, 0xFB05);
+
+	mdio_write(0, 0x8000);	// PHY soft-reset
+	do{	// Check soft-reset complete
+		mdio_data = mdio_read(0);
+	}while (mdio_data != 0x2100);
+	timer--;
+		if (timer == 0) {
+			return E_TIMOUT;
+		}
+
+	return E_NOERR;
+}
+
+	
+
+u8 RTL9000Cx_Initial_With_AN_Configuration_Check(void)
+{
+	u16 mdio_data = 0;
+	u16 mdio_data_chk = 0;
+
+	u16 page;
+	u16 reg, i;
+	u32 timer = 2000;
+
+
+	for (i = 0; i < 24; i = i + 3)
+	{
+		page = param2_check[i];
+		mdio_data_chk = param2_check[i + 2];
+		reg = param2_check[i + 1];
+		if (page == 0)
+		{
+			mdio_write(27, reg);
+			mdio_data = mdio_read(28);
+		}
+		else
+		{
+			mdio_write(31, page);
+			mdio_data = mdio_read(reg);
+		}
+
+		if (mdio_data_chk != mdio_data)
+		{
+			DBGMSG(("%dth param error page=0x%04X reg=0x%04X data=0x%04X\r\n", i / 3, page, reg, mdio_data));
+			return E_FAILED;
+		}
+	}
+
+	
+		timer--;
+		if (timer == 0) {
+			return E_TIMOUT;
+		}
+	
 
 	return E_NOERR;
 }
@@ -151,6 +233,7 @@ u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length)
 	//normal mode
 	if (cable_st == 0x6000) {
 		*cable_length = 0xFFFF; // Cable is normal.
+		DBGMSG(("Cable status is normal.\r\n"));
 		return CABLE_NORMAL;
 	}
 
@@ -160,14 +243,19 @@ u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length)
 		mdio_data = mdio_read(28);
 		mdio_data = mdio_data * 2 / 15;
 		*cable_length = (mdio_data & 0xFFFF);
+		DBGMSG(("Cable status is open.\r\n"));
 		return CABLE_OPEN;
 	}
 
 	if (cable_st == 0x5000){
+		DBGMSG(("Cable status is short.\r\n"));
 		return CABLE_SHORT;
 	}
-
+	else
+	{
+	DBGMSG(("Cable status is unknown.\r\n"));
 	return CABLE_UNKNOWN;
+	}
 }
 
 u8 RTL9000Cx_Soft_Reset(void)
@@ -484,7 +572,7 @@ u8 RTL9000Cx_OP_Interrupt_status(u32* op_status)
 		BIT_SET(*op_status,OP_INTERRUPT_STATUS_OT_EVENT);
 	}
 
-	//analyze mdio_data3->OPINSR3
+	//analyze mdio_data2->OPINSR3
 
 	if (BIT_TST(mdio_data2,0)){
 		DBGMSG(("PHY is woken up by remote wake up\r\n"));
@@ -729,7 +817,7 @@ u8 RTL9000Cx_Sleep_cap_check(void)
 
 }
 
-u8 RTL9000Cx_xMII_driving_strength(u8 RGMII_Voltage)
+u8 RTL9000Cx_xMII_IO_Select(u8 RGMII_Voltage)
 {
 	u32 mdio_data = 0;
 
@@ -886,17 +974,41 @@ u8 RTL9000Cx_Remote_loopback(void)
 u8 RTL9000Cx_IOL_test(u8 TestMode_selection)
 {
 	u32 mdio_data = 0;
-
-	mdio_data = mdio_read(0x09);
+	
+	mdio_write(31,0xA59);
+	mdio_data = mdio_read(17);
 	if(mdio_data == 0xFFFF)
 		return E_NOTRDY;
 
 	
 		switch(TestMode_selection){
-
+			case 0://Test Mode0 (Normal mode)
+				DBGMSG(("Test Mode 0\r\n"));
+				mdio_write(17, (mdio_data & 0x1FFF) | 0x0000);//set reg PHYCR bit15:13 = 000
+				
+				/* Output TX_CLK to PTP_GPIO setting: */
+				mdio_write(27,0xbc5c);
+				mdio_write(28,0x0200); //read clear
+			
+				mdio_write(27,0xbc52);
+				mdio_write(28,0x13C3);
+			
+				mdio_write(27,0xbcf8);
+				mdio_write(28,0x0077); 
+			
+				mdio_write(27,0xd41e);
+				mdio_write(28,0x802C);
+			
+				mdio_write(27,0xd012);
+				mdio_write(28,0x0060); //disable SSC
+			 
+			  	/* END */
+				
+				break;
+			
 			case 1://Test Mode1
 				DBGMSG(("Test Mode 1\r\n"));
-				mdio_write(17, (mdio_data & 0x1FFF)|0x2000);//set reg PHYCR bit15:13 = 001
+				mdio_write(17, (mdio_data & 0x1FFF) | 0x2000);//set reg PHYCR bit15:13 = 001
 				break;
 
 			case 2://Test Mode2
@@ -918,6 +1030,157 @@ u8 RTL9000Cx_IOL_test(u8 TestMode_selection)
 				break;
 		}
 		
+	
+	return E_NOERR;
+}
+
+u8 RTL9000Cx_MACSEC_Interrupt_setting(void)
+{	
+	u32 mdio_data = 0;
+	
+	//setting GINER,GINMR, and read clear GINSR
+	RTL9000Cx_General_Interrupt_setting();
+	
+	//Enable MACSEC_GLB_IMR
+	mdio_write(0x1F,0x0D80);
+	mdio_data = mdio_read(0x12);
+	BIT_SET(mdio_data, 0); //Enable MACSEC IP's 'Egress' interrupt output
+	BIT_SET(mdio_data, 8); //Enable MACSEC IP's 'Ingress' interrupt output
+	mdio_write(0x12, mdio_data);
+	
+	//Enable AIC_Interrupt
+	RTL9000Cx_MACsec_Egress_Write(0xF80C, 0x00003FFF); //Enable AIC interrupt in Egress from bit 0 to 9
+	RTL9000Cx_MACsec_Ingress_Write(0xF80C, 0x00003FFF); //Enable AIC interrupt in Ingress from bit 0 to 9
+	
+	//Clear AIC interrupts: Not Read Clear; but to write '1' in corresponding triggered bits (cleared all [9:0] bits here)
+	RTL9000Cx_MACsec_Egress_Write(0xF810, 0x00003FFF); //Clear AIC interrupt in Egress from bit 0 to 9
+	RTL9000Cx_MACsec_Egress_Read(0xF80C); //Check if AIC interrupt bits in Egress are cleared or not
+	
+	RTL9000Cx_MACsec_Ingress_Write(0xF810, 0x00003FFF); //Clear AIC interrupt in Ingress from bit 0 to 9
+	RTL9000Cx_MACsec_Ingress_Read(0xF80C); //Check if AIC interrupt bits in Ingress are cleared or not
+	
+	//Clear MACSEC_GLB_ISR
+	mdio_write(0x1F,0x0D80);
+	mdio_data = mdio_read(0x14);
+	BIT_SET(mdio_data, 0); //Clear MACSEC IP's 'Egress' interrupt output by write '1' again
+	BIT_SET(mdio_data, 8); //Clear MACSEC IP's 'Ingress' interrupt output by write '1' again
+	mdio_write(0x14, mdio_data);
+	
+	mdio_write(0x1F,0x0D80);
+	mdio_data = mdio_read(0x14); //Check if GLB_ISR is cleared or not
+	
+	
+	return E_NOERR;
+}
+
+u8 RTL9000Cx_MACSEC_GLB_Interrupt_Status(u32* MACSEC_GLB_ISR)
+{
+	u32 mdio_data = 0;
+	//Enable MACSEC_GLB_IMR first.
+	//If GINSR bit[12] = 1, refer to RTL9000Cx_General_Interrupt_status(u16* general_int_status).
+	//Then read MACSEC_GLB_ISR.
+	
+
+	
+	mdio_write(0x1F, 0x0D80); //read MACSEC_GLB_ISR
+	mdio_data = mdio_read(0x14);
+	if(mdio_data == 0xFFFF)
+		return E_NOTRDY;
+	
+	DBGMSG(("MACSEC_GLB_ISR = 0x%04X\r\n", mdio_data));
+
+	//analyze mdio_data->MACSEC_GLB_ISR
+
+	if (BIT_TST(mdio_data, 0)){
+		DBGMSG(("MACSEC IP's interrupt events occurred at Egress block\r\n"));
+		BIT_SET(*MACSEC_GLB_ISR, MACSEC_GLB_ISR_EGRESS_EVENTS);
+	}
+	if (BIT_TST(mdio_data, 8)){
+		DBGMSG(("MACSEC IP's interrupt events occurred at Ingress block\r\n"));
+		BIT_SET(*MACSEC_GLB_ISR, MACSEC_GLB_ISR_INGRESS_EVENTS);
+	}
+	
+	return E_NOERR;
+}
+
+
+u8 RTL9000Cx_MACSEC_AIC_Interrupt_Status(u32* MACSEC_AIC_STATUS)
+{
+	u32 mdio_data0 = 0;
+	u32 mdio_data1 = 0;
+	//Enable MACSEC_GLB_IMR and AIC_Interrupt first.
+	//If GINSR bit[12] = 1, refer to RTL9000Cx_General_Interrupt_status(u16* general_int_status).
+	//Read MACSEC_GLB_ISR, refer to RTL9000Cx_MACSEC_GLB_Interrupt_Status(u32* MACSEC_GLB_ISR).
+	//Then Read AIC_Interrupt_Status.
+	
+	
+	
+	mdio_data0 = RTL9000Cx_MACsec_Egress_Read(0xF80C);//read AIC_Interrupt_status in Egress
+	if(mdio_data0 == 0xFFFFFFFF)
+		return E_NOTRDY;
+	
+	DBGMSG(("AIC_Interrupt_status in Egress = 0x%08X\r\n", mdio_data0));
+
+	//analyze mdio_data0 -> AIC_Interrupt_Status in Egress
+
+	if (BIT_TST(mdio_data0, 0)){
+		DBGMSG(("Packet drop pulse from classification logic\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_DROP_CLASS_EVENTS);
+	}
+	if (BIT_TST(mdio_data0, 1)){
+		DBGMSG(("Packet drop pulse from post-processor logic\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_DROP_PP_EVENTS);
+	}
+	if (BIT_TST(mdio_data0, 3)){
+		DBGMSG(("Interrupt pulse from MACsec crypto-engine core\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_ENG_IRQ_EVENTS);
+	}
+	if (BIT_TST(mdio_data0, 7)){
+		DBGMSG(("Packet drop pulse from consistency checking logic\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_DROP_CC_EVENTS);  //Ingress only
+	}
+	if (BIT_TST(mdio_data0, 8)){
+		DBGMSG(("Pulse from post processor\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_SA_PN_THR_EVENTS);
+	}
+	if (BIT_TST(mdio_data0, 9)){
+		DBGMSG(("Pulse from classifier\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_SA_EXPIRED_EVENTS);
+	}
+	
+	
+	mdio_data1 = RTL9000Cx_MACsec_Ingress_Read(0xF80C);//read AIC_Interrupt_status in Ingress
+	if(mdio_data1 == 0xFFFFFFFF)
+		return E_NOTRDY;
+	
+	DBGMSG(("AIC_Interrupt_status in Ingress = 0x%08X\r\n", mdio_data1));
+
+	//analyze mdio_data1 -> AIC_Interrupt_Status in Ingress
+
+	if (BIT_TST(mdio_data1, 0)){
+		DBGMSG(("Packet drop pulse from classification logic\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_DROP_CLASS_EVENTS);
+	}
+	if (BIT_TST(mdio_data1, 1)){
+		DBGMSG(("Packet drop pulse from post-processor logic\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_DROP_PP_EVENTS);
+	}
+	if (BIT_TST(mdio_data1, 3)){
+		DBGMSG(("Interrupt pulse from MACsec crypto-engine core\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_ENG_IRQ_EVENTS);
+	}
+	if (BIT_TST(mdio_data1, 7)){
+		DBGMSG(("Packet drop pulse from consistency checking logic\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_DROP_CC_EVENTS);
+	}
+	if (BIT_TST(mdio_data1, 8)){
+		DBGMSG(("Pulse from post processor\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_SA_PN_THR_EVENTS);  //Egress only
+	}
+	if (BIT_TST(mdio_data1, 9)){
+		DBGMSG(("Pulse from classifier\r\n"));
+		BIT_SET(*MACSEC_AIC_STATUS, AIC_INTERRUPT_SA_EXPIRED_EVENTS);  //Egress only
+	}
 	
 	return E_NOERR;
 }
@@ -1748,6 +2011,9 @@ u8 RTL9000Cx_MACsec_Initial_Configuration_example_2(void)
 	return E_NOERR;
 
 }
+
+
+
 
 
 
