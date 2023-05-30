@@ -898,7 +898,7 @@ u8 RTL9000Cx_Get_PCS_status(void)
 		return PCS_STATE_UNKNOWN;
 
 	switch (mdio_data){
-		case 0x40://Disable Transmitter State
+		case 0x00://Disable Transmitter State
 			DBGMSG(("disable transmitter state\r\n"));
 			pcs_state = PCS_STATE_DISABLE_TRANSMITTER;
 			break;
