@@ -2,10 +2,10 @@
 
 #include "RTL9000Cx_sample_code.h"
 
-u16 param_check[18] = { 0, 0x859C,0x0609,  0, 0x85A2,0x0300,  0, 0x85A4,0x0F07,  0,0xDC00,0x1899, 
+u16 param_check[18] = { 0, 0x859C,0x0609,  0, 0x85A2,0x0300,  0, 0x85A4,0x0D07,  0,0xDC00,0x1899, 
                                              0x0A4C,20,0x2A2E,  0x0A49,20,0xFB00};
 
-u16 param2_check[24] = { 0, 0x859C, 0x0609,  0, 0x85A2, 0x0300,  0, 0x85A4, 0x0F07,  0, 0xDC00, 0x1899, 
+u16 param2_check[24] = { 0, 0x859C, 0x0609,  0, 0x85A2, 0x0300,  0, 0x85A4, 0x0D07,  0, 0xDC00, 0x1899, 
                          0x0A4C, 20, 0x2A2E,  0x0A49, 20, 0xFB00, 0x0A55, 17, 0xE302, 0xA54, 21, 0xFB05};
 
 u8 RTL9000Cx_Initial_Configuration(void)
@@ -19,7 +19,7 @@ u8 RTL9000Cx_Initial_Configuration(void)
 	mdio_write(27, 0x85A2);
 	mdio_write(28, 0x0300);
 	mdio_write(27, 0x85A4);
-	mdio_write(28, 0x0F07);
+	mdio_write(28, 0x0D07); 	//modified
 	mdio_write(27, 0xDC00);
 	mdio_write(28, 0x1899);
 	mdio_write(31, 0x0A4C);
@@ -95,7 +95,7 @@ u8 RTL9000Cx_Initial_With_AN_Configuration(void)
 	mdio_write(27, 0x85A2);
 	mdio_write(28, 0x0300);
 	mdio_write(27, 0x85A4);
-	mdio_write(28, 0x0F07);
+	mdio_write(28, 0x0D07); 	//modified
 	mdio_write(27, 0xDC00);
 	mdio_write(28, 0x1899);
 	mdio_write(31, 0x0A4C);
@@ -212,6 +212,9 @@ u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length)
 {
 	u32 mdio_data = 0;
 	u16 cable_st;
+
+	mdio_write(31, 0x0D13);    
+	mdio_write(21, 0x0047); 	//For cable test parameter - added
 
 	//Enable RTCT and start to test
 	mdio_write(31, 0x0A42);    //PAGSR:change page to 0xA42
@@ -986,7 +989,7 @@ u8 RTL9000Cx_IOL_test(u8 TestMode_selection)
 				DBGMSG(("Test Mode 0\r\n"));
 				mdio_write(17, (mdio_data & 0x1FFF) | 0x0000);//set reg PHYCR bit15:13 = 000
 				
-				/* Output TX_CLK to PTP_GPIO setting: */
+				/* Output TX_TCLK to PTP_GPIO setting: */
 				mdio_write(27,0xbc5c);
 				mdio_write(28,0x0200); //read clear
 			
