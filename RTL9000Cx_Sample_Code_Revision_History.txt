@@ -1,0 +1,23 @@
+RTL9000Cx_Sample_Code_Revision_History
+
+V0.3 (2023/10/31)
+==============================================
+- Modified u8 RTL9000Cx_Initial_Configuration(void), u8 RTL9000Cx_Initial_With_AN_Configuration(void); u16 param_check[18] and u16 param2_check[24].
+- Added parameter for cable test in u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length).
+
+
+
+V0.2 (2023/05/31)
+==============================================
+- Added u8 RTL9000Cx_Initial_With_AN_Configuration(void);
+- Added u8 RTL9000Cx_Initial_With_AN_Configuration_Check(void);
+- Added u8 RTL9000Cx_MACSEC_Interrupt_setting(void);
+- Added u8 RTL9000Cx_MACSEC_GLB_Interrupt_Status(u32* MACSEC_GLB_ISR);
+- Added u8 RTL9000Cx_MACSEC_AIC_Interrupt_Status(u32* MACSEC_AIC_STATUS);
+- Modified u8 RTL9000Cx_IOL_test(u8 TestMode_selection) typo and added TEST MODE 0 and output TX_TCLK to PTP_GIO setting.
+- Added status detail in u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length) function.
+
+
+V0.1 (2023/03/31)
+==============================================
+- First release.
