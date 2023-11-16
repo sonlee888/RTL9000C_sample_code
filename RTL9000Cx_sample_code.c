@@ -1,6 +1,6 @@
 //All functions can refer to RTL9000Cx_Sample_Code_Note_v0.2.pdf.
 
-#include "RTL9000Cx_sample_code_v03.h"
+#include "RTL9000Cx_sample_code.h"
 
 u16 param_check[18] = { 0, 0x859C,0x0609,  0, 0x85A2,0x0300,  0, 0x85A4,0x0D07,  0,0xDC00,0x1899, 
                                              0x0A4C,20,0x2A2E,  0x0A49,20,0xFB00};
