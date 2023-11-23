@@ -1,9 +1,9 @@
 RTL9000Cx_Sample_Code_Revision_History
 
-V0.3 (2023/10/31)
+V0.3 (2023/11/30)
 ==============================================
-- Modified u8 RTL9000Cx_Initial_Configuration(void), u8 RTL9000Cx_Initial_With_AN_Configuration(void); u16 param_check[18] and u16 param2_check[24].
-- Added parameter for cable test in u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length).
+- Modified u8 RTL9000Cx_Initial_With_TC10_Configuration(void), u8 RTL9000Cx_Initial_With_TC10_Configuration_Check(void), u16 param_check[24] and u16 param_check2[4].
+- Modified u8 RTL9000Cx_Initial_With_AN_TC10_Configuration(void), u8 RTL9000Cx_Initial_With_AN_TC10_Configuration_Check(void);and added u16 param_with_NWAY_check1[30], param_with_NWAY_check2[4], and parma_with_NWAY_check3[32].
 
 
 
