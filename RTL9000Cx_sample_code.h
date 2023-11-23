@@ -1,4 +1,4 @@
-//All functions can refer to RTL9000Cx_Sample_Code_Note_v0.2.pdf.
+//All functions can refer to RTL9000Cx_Sample_Code_Note_v0.3.pdf.
 
 #include "mdio.h"
 #include "mdio2.h"
@@ -157,6 +157,10 @@ u8 RTL9000Cx_Initial_Configuration(void);
 u8 RTL9000Cx_Initial_Configuration_Check(void);
 u8 RTL9000Cx_Initial_With_AN_Configuration(void);
 u8 RTL9000Cx_Initial_With_AN_Configuration_Check(void);
+u8 RTL9000Cx_Initial_With_TC10_Configuration(void);
+u8 RTL9000Cx_Initial_With_TC10_Configuration_Check(void);
+u8 RTL9000Cx_Initial_With_AN_TC10_Configuration(void);
+u8 RTL9000Cx_Initial_With_AN_TC10_Configuration_Check(void);
 u8 RTL9000Cx_GetLinkStatus(void);
 u8 RTL9000Cx_Soft_Reset(void);
 u8 RTL9000Cx_CableFaultLocationAndDiagnosis(u16* cable_length);
