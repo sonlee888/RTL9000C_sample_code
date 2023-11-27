@@ -279,7 +279,7 @@ u8 RTL9000Cx_Initial_With_AN_Configuration_Check(void)
 	mdio_write(27, 0xB830);
 	mdio_write(28, 0x8000);
 	mdio_write(27, 0xB800);
-	timer = 2000;
+	timer = 2000; // set a 2ms timer
 	do{	
 	
 		mdio_data = ((u16) mdio_read(28) & 0x0040);
@@ -488,7 +488,7 @@ u8 RTL9000Cx_Initial_With_TC10_Configuration_Check(void)
 	mdio_write(27, 0xB830);
 	mdio_write(28, 0x8000);
 	mdio_write(27, 0xB800);
-	timer = 2000;
+	timer = 2000; // set a 2ms timer
 	do{	
 	
 		mdio_data = ((u16) mdio_read(28) & 0x0040);
@@ -738,7 +738,7 @@ u8 RTL9000Cx_Initial_With_AN_TC10_Configuration_Check(void)
 	mdio_write(27, 0xB830);
 	mdio_write(28, 0x8000);
 	mdio_write(27, 0xB800);
-	timer = 2000;
+	timer = 2000; // set a 2ms timer
 	do{	
 	
 		mdio_data = ((u16) mdio_read(28) & 0x0040);
